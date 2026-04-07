@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛡️ Warrantor | Advanced Asset Protection
 
-## Getting Started
+Warrantor is a premium, cloud-native warranty management suite designed to protect your physical investments. Built with a focus on editorial aesthetics and bank-grade security, it simplifies the lifecycle of your product warranties through automated tracking and intelligent alerting.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Core Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🔐 High-Security Infrastructure
+- **Cognito-Powered Identity**: Secure user authentication and lifecycle management.
+- **TOTP Multi-Factor Authentication (MFA)**: Advanced 2FA setup using Google Authenticator or Authy, with custom QR code generation and verification.
+- **Security Dashboard**: Integrated password management and secure account teardown protocols.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 📜 Intelligent Warranty Tracking
+- **S3 Receipt Vault**: Securely upload and store receipt photos/product evidence directly to AWS S3.
+- **Automated Lifecycle Math**: Automatic calculation of coverage status (Active, Expiring Soon, Expired) using server-time synchronization.
+- **Categorical Organization**: Smart tagging for Electronics, Appliances, Automotive, and more.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🔔 Smart Notification System
+- **Omni-Channel Alerts**: Automated email notifications triggered via CloudWatch Events and EventBridge 30/7/1 days before expiry.
+- **In-App Notification Center**: Real-time sync of read/unread states with backend persistency.
+- **Proactive Warnings**: Visual cues and badges across the dashboard for urgent asset protection.
 
-## Learn More
+### 🎨 Editorial Design System
+- **Aesthetic**: "Warm Paper & Editorial Sage" palette designed for professional clarity.
+- **UI Components**:
+    - **Portaled Modals**: Premium full-screen backdrop blurs with React Portals.
+    - **Micro-animations**: Smooth, staggered entrance animations for all data grids.
+    - **Adaptive Layouts**: Fully responsive experience from mobile to ultra-wide displays.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion
+- **Auth**: AWS Amplify (Cognito)
+- **Storage**: AWS S3
+- **Database**: DynamoDB
+- **Compute**: AWS Lambda (Serverless Framework)
+- **Mailing**: AWS SES (Simple Email Service)
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Getting Started
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Environment Configuration**:
+   Create a `.env.local` with your AWS credentials and Amplify configuration:
+   ```env
+   NEXT_PUBLIC_AWS_REGION=us-east-1
+   NEXT_PUBLIC_USER_POOL_ID=...
+   NEXT_PUBLIC_USER_POOL_CLIENT_ID=...
+   ```
+
+3. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📐 Data Architecture
+
+The system uses a **Single Table Design** (or segmented service tables) in DynamoDB for high-speed retrieval of warranty and notification assets, optimized for user-specific indexing.
+
+---
+
+*Designed & Engineered for Visual Excellence.*
