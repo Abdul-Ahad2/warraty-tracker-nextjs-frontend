@@ -29,6 +29,7 @@ export interface Warranty {
     expiryDate: string;
     warrantyProvider: string;
     receiptUrl?: string;
+    pictureUrl?: string;
     notes?: string;
     status: WarrantyStatus;
     daysRemaining: number;

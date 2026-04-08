@@ -1,4 +1,6 @@
-import { useState, useRef } from 'react';
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
 import { FiUpload, FiX, FiPlus, FiCheckCircle } from 'react-icons/fi';
 import { Modal, ModalFooter } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -7,16 +9,48 @@ import { Spinner } from '@/components/ui/Spinner';
 import type { Warranty } from '@/types';
 import { api } from '@/utils/api';
 
-interface AddWarrantyModalProps { open: boolean; onClose: () => void; onAdd: (warranty: Warranty) => void; }
+interface AddWarrantyModalProps { 
+    open: boolean; 
+    onClose: () => void; 
+    onAdd: (warranty: any) => void;
+    initialData?: Warranty | null;
+}
 
 const categories = ['Electronics', 'Appliances', 'Furniture', 'Automotive', 'Other'];
 
-export function AddWarrantyModal({ open, onClose, onAdd }: AddWarrantyModalProps) {
-    const [form, setForm] = useState({ productName: '', brand: '', category: 'Electronics', warrantyProvider: '', purchaseDate: '', expiryDate: '', coverageDetails: '', pictureUrl: '' });
+export function AddWarrantyModal({ open, onClose, onAdd, initialData }: AddWarrantyModalProps) {
+    const [form, setForm] = useState({ 
+        productName: '', 
+        brand: '', 
+        category: 'Electronics', 
+        warrantyProvider: '', 
+        purchaseDate: '', 
+        expiryDate: '', 
+        coverageDetails: '', 
+        pictureUrl: '' 
+    });
+
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [uploading, setUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Initialize form when initialData changes
+    useEffect(() => {
+        if (initialData) {
+            setForm({
+                productName: initialData.productName || '',
+                brand: initialData.brand || '',
+                category: initialData.category || 'Electronics',
+                warrantyProvider: initialData.warrantyProvider || '',
+                purchaseDate: initialData.purchaseDate ? new Date(initialData.purchaseDate).toISOString().split('T')[0] : '',
+                expiryDate: initialData.expiryDate ? new Date(initialData.expiryDate).toISOString().split('T')[0] : '',
+                coverageDetails: initialData.coverageDetails || '',
+                pictureUrl: (initialData as any).pictureUrl || ''
+            });
+        } else {
+            setForm({ productName: '', brand: '', category: 'Electronics', warrantyProvider: '', purchaseDate: '', expiryDate: '', coverageDetails: '', pictureUrl: '' });
+        }
+    }, [initialData, open]);
 
     const validate = () => {
         const e: Record<string, string> = {};
@@ -36,13 +70,8 @@ export function AddWarrantyModal({ open, onClose, onAdd }: AddWarrantyModalProps
         setErrors(prev => ({ ...prev, pictureUrl: '' }));
 
         try {
-            // 1. Get pre-signed URL from backend
             const { uploadUrl, pictureUrl } = await api.get<{ uploadUrl: string, pictureUrl: string }>('/uploads');
-
-            // 2. Upload to S3
             await api.uploadFile(uploadUrl, file);
-
-            // 3. Update form
             setForm(prev => ({ ...prev, pictureUrl }));
         } catch (error) {
             console.error('Upload failed:', error);
@@ -57,14 +86,21 @@ export function AddWarrantyModal({ open, onClose, onAdd }: AddWarrantyModalProps
         const errs = validate();
         if (Object.keys(errs).length) { setErrors(errs); return; }
 
-        onAdd(form as any); // The page will handle the API POST
-        setForm({ productName: '', brand: '', category: 'Electronics', warrantyProvider: '', purchaseDate: '', expiryDate: '', coverageDetails: '', pictureUrl: '' });
+        onAdd({ ...form, id: initialData?.id }); 
         setErrors({});
         onClose();
     };
 
+    const isEdit = !!initialData;
+
     return (
-        <Modal open={open} onClose={onClose} title="Add Warranty" description="Register a new product warranty" size="xl">
+        <Modal 
+            open={open} 
+            onClose={onClose} 
+            title={isEdit ? "Edit Warranty" : "Add Warranty"} 
+            description={isEdit ? "Update your product records" : "Register a new product warranty"} 
+            size="xl"
+        >
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
                     {/* Left Column: Core Info */}
@@ -137,11 +173,10 @@ export function AddWarrantyModal({ open, onClose, onAdd }: AddWarrantyModalProps
                         disabled={uploading}
                         className="rounded-2xl font-black px-8"
                     >
-                        Save Warranty
+                        {isEdit ? "Save Changes" : "Save Warranty"}
                     </Button>
                 </ModalFooter>
             </form>
         </Modal>
-
     );
 }

@@ -1,11 +1,12 @@
 'use client';
 
-import { FiTrash2, FiCalendar, FiClock } from 'react-icons/fi';
+import { FiTrash2, FiCalendar, FiClock, FiEdit2, FiEye } from 'react-icons/fi';
 import type { Warranty } from '@/types';
 
 interface WarrantyCardProps {
     warranty: Warranty;
     onDelete: (id: string) => void;
+    onEdit: (warranty: Warranty) => void;
 }
 
 function getStatusConfig(status: Warranty['status']) {
@@ -23,7 +24,7 @@ function formatDate(isoString: string) {
     return new Date(isoString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export function WarrantyCard({ warranty, onDelete }: WarrantyCardProps) {
+export function WarrantyCard({ warranty, onDelete, onEdit }: WarrantyCardProps) {
     const config = getStatusConfig(warranty.status);
 
     return (
@@ -78,7 +79,6 @@ export function WarrantyCard({ warranty, onDelete }: WarrantyCardProps) {
                 </div>
             </div>
 
-            {/* Footer */}
             <div className="pt-5 mt-auto border-t border-[#E5E2D9] flex items-center justify-between">
                 <div className={`text-sm font-black ${config.textColor}`}>
                     {warranty.status === 'expired'
@@ -86,12 +86,34 @@ export function WarrantyCard({ warranty, onDelete }: WarrantyCardProps) {
                         : `${warranty.daysRemaining} days left`
                     }
                 </div>
-                <button
-                    onClick={() => onDelete(warranty.id)}
-                    className="opacity-0 group-hover:opacity-100 p-2 text-[#8A8A85] hover:text-[#A64D3F] transition-all rounded-xl hover:bg-[#FDF2F0]"
-                >
-                    <FiTrash2 size={16} />
-                </button>
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    {/* View Photo */}
+                    {(warranty as any).pictureUrl && (
+                        <button
+                            onClick={() => window.open((warranty as any).pictureUrl, '_blank')}
+                            className="p-2 text-[#8A8A85] hover:text-[#2D5A43] transition-all rounded-xl hover:bg-[#F1F8F4]"
+                            title="View Receipt"
+                        >
+                            <FiEye size={16} />
+                        </button>
+                    )}
+                    {/* Edit */}
+                    <button
+                        onClick={() => onEdit(warranty)}
+                        className="p-2 text-[#8A8A85] hover:text-[#2D5A43] transition-all rounded-xl hover:bg-[#F1F8F4]"
+                        title="Edit Warranty"
+                    >
+                        <FiEdit2 size={16} />
+                    </button>
+                    {/* Delete */}
+                    <button
+                        onClick={() => onDelete(warranty.id)}
+                        className="p-2 text-[#8A8A85] hover:text-[#A64D3F] transition-all rounded-xl hover:bg-[#FDF2F0]"
+                        title="Remove Warranty"
+                    >
+                        <FiTrash2 size={16} />
+                    </button>
+                </div>
             </div>
         </div>
     );

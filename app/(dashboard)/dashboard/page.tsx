@@ -16,6 +16,8 @@ export default function DashboardPage() {
     const { user } = useUser();
     const [warranties, setWarranties] = useState<Warranty[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [editingWarranty, setEditingWarranty] = useState<Warranty | null>(null);
 
     useEffect(() => {
         const fetchWarranties = async () => {
@@ -36,6 +38,39 @@ export default function DashboardPage() {
         fetchWarranties();
     }, []);
 
+    const handleSave = async (warrantyData: any) => {
+        try {
+            if (warrantyData.id) {
+                // Update
+                await api.put(`/warranties/${warrantyData.id}`, warrantyData);
+                const updatedWarranties = warranties.map(w => 
+                    w.id === warrantyData.id 
+                        ? { 
+                            ...w, 
+                            ...warrantyData, 
+                            status: calculateWarrantyStatus(warrantyData.expiryDate),
+                            daysRemaining: calculateDaysRemaining(warrantyData.expiryDate)
+                        } 
+                        : w
+                );
+                setWarranties(updatedWarranties);
+            } else {
+                // Create
+                const res = await api.post<any>('/warranties', warrantyData);
+                const newWarranty = {
+                    ...warrantyData,
+                    id: res.warrantyId,
+                    status: calculateWarrantyStatus(warrantyData.expiryDate),
+                    daysRemaining: calculateDaysRemaining(warrantyData.expiryDate)
+                };
+                setWarranties(prev => [newWarranty, ...prev]);
+            }
+        } catch (error) {
+            console.error('Error saving warranty:', error);
+            alert('Failed to save warranty. Please try again.');
+        }
+    };
+
     const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to remove this warranty?')) {
             try {
@@ -46,6 +81,11 @@ export default function DashboardPage() {
                 alert('Failed to delete warranty. Please try again.');
             }
         }
+    };
+
+    const handleEdit = (warranty: Warranty) => {
+        setEditingWarranty(warranty);
+        setShowModal(true);
     };
 
     const expiringWarranties = warranties.filter(w => w.status === 'expiring');
@@ -84,13 +124,24 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                             {expiringWarranties.map((warranty, i) => (
                                 <div key={warranty.id} className="animate-fade-in-up h-full" style={{ animationDelay: `${0.4 + i * 0.05}s` }}>
-                                    <WarrantyCard warranty={warranty} onDelete={handleDelete} />
+                                    <WarrantyCard 
+                                        warranty={warranty} 
+                                        onDelete={handleDelete} 
+                                        onEdit={handleEdit}
+                                    />
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+
+            <AddWarrantyModal 
+                open={showModal} 
+                onClose={() => setShowModal(false)} 
+                onAdd={handleSave}
+                initialData={editingWarranty}
+            />
         </div>
     );
 }

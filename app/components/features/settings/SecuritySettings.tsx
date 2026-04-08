@@ -185,7 +185,7 @@ export function SecuritySettings({ twoFAEnabled, setTwoFAEnabled }: SecuritySett
                 <Modal
                     open={showMFAModal}
                     onClose={() => setShowMFAModal(false)}
-                    title="Vault Access Synchronization"
+                    title="2FA Activation"
                     description="Bridge your device to the encrypted ledger."
                     size="2xl" // Changed to 2xl for a better horizontal aspect ratio
                     className="overflow-hidden" // Ensure the modal clips the inner corners
@@ -287,7 +287,7 @@ export function SecuritySettings({ twoFAEnabled, setTwoFAEnabled }: SecuritySett
                                         disabled={verificationCode.length !== 6 || verifying}
                                         icon={verifying ? <Spinner size="sm" className="text-white" /> : <FiShield size={18} />}
                                     >
-                                        {verifying ? 'Linking...' : 'Activate Vault'}
+                                        {verifying ? 'Linking...' : 'Activate'}
                                     </Button>
                                 </div>
                             </div>

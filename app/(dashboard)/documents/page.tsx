@@ -18,6 +18,7 @@ export default function WarrantiesPage() {
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState<'modified' | 'title'>('modified');
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [editingWarranty, setEditingWarranty] = useState<Warranty | null>(null);
 
     useEffect(() => {
         const fetchWarranties = async () => {
@@ -49,23 +50,42 @@ export default function WarrantiesPage() {
         }
     };
 
-    const handleAdd = async (warrantyData: any) => {
+    const handleSave = async (warrantyData: any) => {
         try {
-            const result = await api.post<{ message: string, warrantyId: string }>('/warranties', warrantyData);
-            
-            // Construct the local warranty object with the ID returned from backend
-            const enriched: Warranty = {
-                ...warrantyData,
-                id: result.warrantyId,
-                status: calculateWarrantyStatus(warrantyData.expiryDate),
-                daysRemaining: calculateDaysRemaining(warrantyData.expiryDate)
-            };
-            
-            setWarranties(prev => [enriched, ...prev]);
+            if (warrantyData.id) {
+                // Update
+                await api.put(`/warranties/${warrantyData.id}`, warrantyData);
+                const updated = warranties.map(w => 
+                    w.id === warrantyData.id 
+                        ? { 
+                            ...w, 
+                            ...warrantyData, 
+                            status: calculateWarrantyStatus(warrantyData.expiryDate),
+                            daysRemaining: calculateDaysRemaining(warrantyData.expiryDate)
+                        } 
+                        : w
+                );
+                setWarranties(updated);
+            } else {
+                // Create
+                const result = await api.post<any>('/warranties', warrantyData);
+                const enriched: Warranty = {
+                    ...warrantyData,
+                    id: result.warrantyId,
+                    status: calculateWarrantyStatus(warrantyData.expiryDate),
+                    daysRemaining: calculateDaysRemaining(warrantyData.expiryDate)
+                };
+                setWarranties(prev => [enriched, ...prev]);
+            }
         } catch (error) {
-            console.error('Error adding warranty:', error);
-            alert('Failed to save warranty to the cloud. Please try again.');
+            console.error('Error saving warranty:', error);
+            alert('Failed to save warranty. Please try again.');
         }
+    };
+
+    const handleEdit = (warranty: Warranty) => {
+        setEditingWarranty(warranty);
+        setIsAddOpen(true);
     };
 
     const filtered = warranties
@@ -86,7 +106,10 @@ export default function WarrantiesPage() {
     return (
         <div className="min-h-screen bg-[#FDFCF9] py-16 px-6">
             <div className="max-w-7xl mx-auto space-y-12">
-                <DocumentsHeader onAddClick={() => setIsAddOpen(true)} />
+                <DocumentsHeader onAddClick={() => {
+                    setEditingWarranty(null);
+                    setIsAddOpen(true);
+                }} />
                 <div className="animate-fade-in-up space-y-8" style={{ animationDelay: '0.2s' }}>
                     <DocumentsControls tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} viewMode={viewMode} setViewMode={setViewMode} />
                     {loading ? (
@@ -107,7 +130,11 @@ export default function WarrantiesPage() {
                                 <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch' : 'flex flex-col gap-5'}>
                                     {filtered.map((warranty, i) => (
                                         <div key={warranty.id} className="animate-fade-in-up h-full" style={{ animationDelay: `${0.3 + i * 0.05}s` }}>
-                                            <WarrantyCard warranty={warranty} onDelete={handleDelete} />
+                                            <WarrantyCard 
+                                                warranty={warranty} 
+                                                onDelete={handleDelete} 
+                                                onEdit={handleEdit}
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -115,7 +142,12 @@ export default function WarrantiesPage() {
                         </>
                     )}
                 </div>
-                <AddWarrantyModal open={isAddOpen} onClose={() => setIsAddOpen(false)} onAdd={handleAdd} />
+                <AddWarrantyModal 
+                    open={isAddOpen} 
+                    onClose={() => setIsAddOpen(false)} 
+                    onAdd={handleSave} 
+                    initialData={editingWarranty}
+                />
             </div>
         </div>
     );

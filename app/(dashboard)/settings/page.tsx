@@ -8,6 +8,7 @@ import { PreferenceSettings } from '@/components/features/settings/PreferenceSet
 import { DangerZone } from '@/components/features/settings/DangerZone';
 import { settingsTabs } from '@/components/features/settings/constants';
 import { api } from '@/utils/api';
+import { fetchMFAPreference } from 'aws-amplify/auth';
 import { Spinner } from '@/components/ui/Spinner';
 
 export default function SettingsPage() {
@@ -29,12 +30,17 @@ export default function SettingsPage() {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
+                // Fetch basic settings
                 const data = await api.get<any>('/settings');
                 setSettings({
                     name: data.name || '',
                     email: data.email || '',
                     preferences: data.preferences || { emailAlerts: true, pushNotifications: true }
                 });
+
+                // Fetch MFA status from Cognito
+                const { preferred } = await fetchMFAPreference();
+                setTwoFAEnabled(preferred === 'TOTP');
             } catch (err) {
                 console.error('Failed to fetch settings:', err);
             } finally {
